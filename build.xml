@@ -23,11 +23,17 @@
 	
 	<target name="prepare" description="Makes target directories, copy non-Java resources, etc.">
 		<mkdir dir="${build.home}" />
+		<mkdir dir="${build.lite}" />
+		<mkdir dir="${build.full}" />
 		<mkdir dir="${dist.home}" />
-		
+
 		<antcall target="-copy-resources">
 			<param name="resources.srcdir" value="${src.home}"/>
-			<param name="resources.destdir" value="${build.home}"/>
+			<param name="resources.destdir" value="${build.lite}"/>
+		</antcall>
+		<antcall target="-copy-resources">
+			<param name="resources.srcdir" value="${src.home}"/>
+			<param name="resources.destdir" value="${build.full}"/>
 		</antcall>
 		<antcall target="-copy-resources">
 			<param name="resources.srcdir" value="${demos.home}"/>
@@ -53,15 +59,36 @@
 		</copy>
 	</target>
 
+	<target name="compile-lite" depends="prepare" description="Compiles the Java source files for the engine and graphics framework only. No demos included.">
+		<javac destdir="${build.lite}" target="${jar.target}" includeantruntime="no">
+			<src path="${src.home}"/>
+		</javac>
+	</target>
+	
 	<target name="compile-full" depends="prepare" description="Compiles the all Java source files (including demos and tools).">
-		<javac destdir="${build.home}" target="${jar.target}" includeantruntime="no">
+		<javac destdir="${build.full}" target="${jar.target}" includeantruntime="no">
 			<src path="${src.home}"/>
 			<src path="${demos.home}"/>
 		</javac>
 	</target>
 
-	<target name="jar-full" depends="compile-full" description="Creates a min JAR of the application">
-		<jar destfile="${dist.home}${file.separator}${jar.name}">
+	<target name="jar-lite" depends="compile-lite" description="Creates a JAR of the engine and graphics framework. No demos includes.">
+		<jar destfile="${dist.home}${file.separator}${jar-lite.name}">
+			<manifest>
+				<attribute name="Created-By" value="${app.author}"/>
+				<attribute name="Built-By" value="${user.name} - ${ant.version}"/>
+				<attribute name="Implementation-Title" value="${app.name}"/>
+				<attribute name="Implementation-Version" value="${app.version} (${timestamp})"/>
+				<attribute name="Implementation-URL" value="${app.website}"/>
+			</manifest>
+			<fileset dir="${build.lite}">
+				<include name="**/*"/>
+			</fileset>
+		</jar>
+	</target>
+	
+	<target name="jar-full" depends="compile-full" description="Creates a JAR of the application and all demos.">
+		<jar destfile="${dist.home}${file.separator}${jar-full.name}">
 			<manifest>
 				<attribute name="Created-By" value="${app.author}"/>
 				<attribute name="Built-By" value="${user.name} - ${ant.version}"/>
@@ -70,13 +97,13 @@
 				<attribute name="Implementation-URL" value="${app.website}"/>
 				<attribute name="Main-Class" value="${jar.main-class}"/>
 			</manifest>
-			<fileset dir="${build.home}">
+			<fileset dir="${build.full}">
 				<include name="**/*"/>
 			</fileset>
 		</jar>
 	</target>
 	
-	<target name="dist" depends="jar-full" description="Creates a distribution of all packages">
+	<target name="dist" depends="jar-lite,jar-full" description="Creates a distribution of all packages">
 		<echo message="Your distribution packages are here: ${dist.home}"/>
 	</target>
 

@@ -84,17 +84,19 @@ public class GridPanel extends JPanel {
 	}
 	
 	protected void drawObject(WorldObject object, IGraphicsContext context) {
-		Type type = object.getType();
-		Renderer renderer = getRendererForType(type);
+		Renderer renderer = getRendererForObject(object);
 		renderer.render(object, context);
 		for (Renderer r : globalRenderers) {
 			r.render(object, context);
 		}
 	}
 	
-	protected Renderer getRendererForType(Type type) {
+	protected Renderer getRendererForObject(WorldObject object) {
 		Renderer renderer;
-		if (renderers.containsKey(type)) {
+		Type type = object.getType();
+		if (object instanceof Renderer) {
+			renderer = (Renderer) object;
+		} else if (renderers.containsKey(type)) {
 			renderer = renderers.get(type);
 		} else {
 			renderer = defaultRenderer;

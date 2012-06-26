@@ -68,6 +68,10 @@ public class UIWorldDriver extends WorldDriverBase {
 		frame.setPreferredSize(size);
 	}
 
+	public JFrame getFrame() {
+		return frame;
+	}
+
 	public String getDemoName() {
 		return demoName;
 	}
